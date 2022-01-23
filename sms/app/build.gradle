@@ -1,0 +1,99 @@
+plugins {
+    id 'org.springframework.boot' version '2.5.2'
+    id 'application'
+    id 'java'
+    id 'war' 
+    id 'distribution'
+}
+repositories {
+    mavenCentral()
+}
+test {
+	testLogging {
+        events "PASSED", "SKIPPED", "FAILED"
+    }
+}
+
+sourceSets.main.java.srcDirs = ['src']
+
+dependencies {     
+	implementation files('src/main/resources/*')    
+    
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.12.3'
+    implementation group: 'org.json', name: 'json', version: '20200518'
+    implementation 'org.postgresql:postgresql:42.2.23'
+    implementation 'org.apache.logging.log4j:log4j-api:2.14.1'
+    implementation 'org.apache.logging.log4j:log4j-core:2.14.1' 
+    implementation 'org.slf4j:slf4j-api:1.7.31'
+    implementation 'org.slf4j:slf4j-simple:1.7.31'
+    implementation 'com.zaxxer:HikariCP:3.4.5'
+    
+
+    implementation ('org.springframework.boot:spring-boot-starter-web:2.5.2') {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
+    implementation("org.springframework.boot:spring-boot-starter-webflux:2.5.4") {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }    
+    implementation group: 'org.springframework', name: 'spring-context', version: '5.3.9'   
+    
+
+    testImplementation("org.springframework.boot:spring-boot-starter-test:2.5.2") {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+        exclude group: "com.vaadin.external.google", module:"android-json"
+    }    
+    
+    implementation 'io.rest-assured:rest-assured:4.4.0'
+    implementation group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.8.0'
+    implementation group: 'org.testng', name: 'testng', version: '7.3.0' 
+    
+    implementation group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: '5.8.0'
+}
+
+test {
+    useJUnitPlatform()
+    
+//    useTestNG() {
+//        useDefaultListeners = true
+//        suites 'src/test/resources/testng.xml' 
+//    }
+    
+    testLogging {
+        events "PASSED", "SKIPPED", "FAILED"
+    }
+}
+distributions {
+    main {
+        distributionBaseName = 'sms'
+        contents {
+            into('config') {
+                from 'src/main/resources/config'
+            }
+            into('resources/messages') {
+                from 'src/main/resources/messages'            
+            }
+            into('webapps') {
+                from 'build/libs/app.war'
+            }
+        }
+    }
+}
+war {
+    manifest {
+        attributes(
+            'Main-Class': 'com.infinira.sms.SmsApplication',
+            'Class-Path': configurations.compileClasspath.collect{it.getName()}.join(' ')
+        )
+    }
+}
+jar {
+    manifest {
+        attributes(
+            'Main-Class': 'com.infinira.sms.SmsApplication',
+            'Class-Path': configurations.compileClasspath.collect{it.getName()}.join(' ')
+        )
+    }
+}
+application {    
+    mainClass = 'com.infinira.sms.SmsApplication'    
+}
